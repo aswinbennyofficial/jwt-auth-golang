@@ -11,7 +11,7 @@ import (
 func Routes(){
 	http.HandleFunc("/health",controllers.HandleHealth)
 
-	http.Handle("/welcome",middleware.Authorize(http.HandlerFunc(controllers.HandleWelcome)))
+	http.Handle("/welcome",middleware.LoginRequired(http.HandlerFunc(controllers.HandleWelcome)))
 	
 
 	http.HandleFunc("/signin",controllers.HandleSignin)

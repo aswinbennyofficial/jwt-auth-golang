@@ -28,7 +28,7 @@ import(
 // }
 
 
-func Authorize(next http.Handler) http.Handler {
+func LoginRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Parse and validate JWT from request
 		claims, err := controllers.ParseAndValidateJWT(r)
