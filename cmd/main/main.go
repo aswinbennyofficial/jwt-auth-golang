@@ -6,6 +6,8 @@ import (
 	"github.com/joho/godotenv"
 	"context"
 	"github.com/aswinbennyofficial/jwt-auth-golang/internal/database"
+	"net/http"
+	"github.com/aswinbennyofficial/jwt-auth-golang/internal/routes"
 	
 )
 
@@ -30,9 +32,9 @@ func main(){
 	coll:=client.Database(DB_NAME).Collection(DB_COLLECTION_NAME)
 	log.Println("coll ", coll)
 	
-	// CRUD operations
-
 	
+	// Invoking routes
+	routes.Routes()
 
 
 
@@ -42,4 +44,6 @@ func main(){
 			panic(err)
 		}
 	}()
+
+	http.ListenAndServe(":8080",nil)
 }
