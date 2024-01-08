@@ -68,8 +68,6 @@ func ParseAndValidateJWT(r *http.Request) (*models.Claims, error) {
 
 
 func HandleSignin(w http.ResponseWriter, r *http.Request){
-	
-	
 
 	var creds models.Credentials
 	// Get the JSON body and decode into credentials
@@ -116,6 +114,7 @@ func HandleSignin(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
+	log.Println("JWT created successfully")
 	// Setting httpCookie
 	http.SetCookie(w, &http.Cookie{
 		Name:    "JWtoken",
