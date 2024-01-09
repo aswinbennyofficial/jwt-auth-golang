@@ -19,7 +19,7 @@ func HandleWelcome(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	log.Println("ACCESS APPROVED TO /home")
+	log.Println("ACCESS APPROVED TO /WELCOME")
 	w.Write([]byte(fmt.Sprintf("Welcome %s!", claims.Username)))
 
 		

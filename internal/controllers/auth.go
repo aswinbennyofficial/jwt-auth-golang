@@ -92,6 +92,9 @@ func generateToken(username string) (string, error) {
 
 
 
+
+
+
 func HandleSignin(w http.ResponseWriter, r *http.Request){
 
 	var creds models.Credentials
@@ -139,10 +142,48 @@ func HandleSignin(w http.ResponseWriter, r *http.Request){
 
 }
 
+// TODO ENV refresh time
 func HandleRefresh(w http.ResponseWriter, r *http.Request){
-	
+	// Parse and validate JWT from request
+	claims, err := ParseAndValidateJWT(r)
+	if err != nil {
+		log.Println("ERROR WHILE PARSING/VALIDATING JWT: ", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	// New token is not issued until 30s of expiration time
+	if time.Until(claims.ExpiresAt.Time) > 240*time.Second {
+		log.Println("NEW REFRESH ONLY BEFORE 4 mins OF EXPIRY")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Generate a new JWT token
+	signedToken, err := generateToken(claims.Username)
+	if err != nil {
+		log.Println("ERROR OCCURRED WHILE CREATING JWT TOKEN: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Setting JWT claims
+	expirationTime := time.Now().Add(5 * time.Minute)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "JWtoken",
+		Value:   signedToken,
+		Expires: expirationTime,
+	})
+
+	log.Println("TOKEN REFRESH SUCCESSFUL")
 }
 
+
 func HandleLogout(w http.ResponseWriter, r *http.Request){
-	
+	log.Println("LOGOUT SUCCESSFUL")
+	http.SetCookie(w, &http.Cookie{
+		Name:    "JWtoken",
+		Expires: time.Now(),
+	})
 }
