@@ -9,11 +9,18 @@ import(
 	"github.com/aswinbennyofficial/jwt-auth-golang/internal/models"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // TODO
-func HashPassword(password string) string {
-	return password
+func HashPassword(password string) (string,error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+    return string(bytes), err
+}
+
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+    return err == nil
 }
 
 func GetJWTKey() []byte{

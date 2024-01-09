@@ -41,7 +41,7 @@ func HandleSignin(w http.ResponseWriter, r *http.Request){
 	}
 
 	// Compare the stored hashed password, with the hashed version of the password that was received
-	if expectedPasswordHash!=utility.HashPassword(creds.Password){
+	if utility.CheckPasswordHash(creds.Password, expectedPasswordHash) == false{
 		log.Println("Incorrect password")
 		w.WriteHeader(http.StatusUnauthorized)
 		return

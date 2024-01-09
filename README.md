@@ -15,3 +15,7 @@ go get go.mongodb.org/mongo-driver/mongo
 ```bash
 go get github.com/golang-jwt/jwt/v5
 ```
+
+```bash
+go get golang.org/x/crypto/bcrypt
+```
