@@ -4,7 +4,7 @@ import(
 	"net/http"
 	"log"
 	"context"
-	"github.com/aswinbennyofficial/jwt-auth-golang/internal/controllers"
+	"github.com/aswinbennyofficial/jwt-auth-golang/internal/utility"
 )
 
 // func Authorize(next http.Handler) http.Handler {
@@ -31,7 +31,7 @@ import(
 func LoginRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Parse and validate JWT from request
-		claims, err := controllers.ParseAndValidateJWT(r)
+		claims, err := utility.ParseAndValidateJWT(r)
 		if err != nil {
 			log.Println("ERROR WHILE PARSING/VALIDATING JWT: ", err)
 			w.WriteHeader(http.StatusUnauthorized)
