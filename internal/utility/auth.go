@@ -63,7 +63,7 @@ func ParseAndValidateJWT(r *http.Request) (*models.Claims, error) {
 // Generate a new JWT token
 func GenerateToken(username string) (string, error) {
 	// Setting expiration time to be 5 minutes from now
-	expirationTime := time.Now().Add(5 * time.Minute)
+	expirationTime := time.Now().Add(time.Duration(config.LoadJwtExpiresIn()) * time.Minute)
 
 	claims := &models.Claims{
 		Username: username,

@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/aswinbennyofficial/jwt-auth-golang/internal/config"
 	"github.com/aswinbennyofficial/jwt-auth-golang/internal/database"
 	"github.com/aswinbennyofficial/jwt-auth-golang/internal/models"
 	"github.com/aswinbennyofficial/jwt-auth-golang/internal/utility"
@@ -59,7 +61,7 @@ func HandleSignin(w http.ResponseWriter, r *http.Request){
 
 	// TODO
 	// Setting expiration time for cookie
-	expirationTime := time.Now().Add(5 * time.Minute)
+	expirationTime := time.Now().Add(time.Duration(config.LoadJwtExpiresIn()) * time.Minute)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:    "JWtoken",
@@ -91,7 +93,7 @@ func HandleRefresh(w http.ResponseWriter, r *http.Request){
 	}
 
 	// Setting JWT claims
-	expirationTime := time.Now().Add(5 * time.Minute)
+	expirationTime := time.Now().Add(time.Duration(config.LoadJwtExpiresIn()) * time.Minute)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:    "JWtoken",

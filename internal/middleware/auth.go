@@ -1,11 +1,13 @@
 package middleware
 
-import(
-	"net/http"
-	"log"
+import (
 	"context"
-	"github.com/aswinbennyofficial/jwt-auth-golang/internal/utility"
+	"log"
+	"net/http"
 	"time"
+
+	"github.com/aswinbennyofficial/jwt-auth-golang/internal/config"
+	"github.com/aswinbennyofficial/jwt-auth-golang/internal/utility"
 )
 
 
@@ -33,7 +35,7 @@ func LoginRequired(next http.Handler) http.Handler {
 			}
 
 			// Setting JWT claims for the new token
-			expirationTime := time.Now().Add(5 * time.Minute)
+			expirationTime := time.Now().Add(time.Duration(config.LoadJwtExpiresIn()) * time.Minute)
 
 			http.SetCookie(w, &http.Cookie{
 				Name:    "JWtoken",
