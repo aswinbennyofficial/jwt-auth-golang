@@ -1,19 +1,21 @@
 package controllers
 
 import (
-	"net/http"
-	"log"
 	"fmt"
-	//"github.com/aswinbennyofficial/jwt-auth-golang/internal/models"
+	"log"
+	"net/http"
+
+	"github.com/aswinbennyofficial/jwt-auth-golang/internal/models"
+
 )
 
 
 func HandleWelcome(w http.ResponseWriter, r *http.Request){
-	// Parse and validate JWT from request
-	claims, err := ParseAndValidateJWT(r)
-	if err != nil {
-		log.Println("ERROR WHILE PARSING/VALIDATING JWT: ", err)
-		w.WriteHeader(http.StatusUnauthorized)
+	
+	claims, ok := r.Context().Value("claims").(*models.Claims)
+	if !ok {
+		log.Println("Claims not found in context")
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

@@ -4,11 +4,12 @@ import(
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Create a map to store the username and hashed password
-var users = map[string]string{
-	"aswinbenny": "password123",
-	"user2": "password2",
-}
+// // TODO
+// // Create a map to store the username and hashed password
+// var users = map[string]string{
+// 	"aswinbenny": "password123",
+// 	"user2": "password2",
+// }
 
 // Create a struct to read the username and password from the request body
 type Credentials struct {
