@@ -65,6 +65,31 @@ func ParseAndValidateJWT(r *http.Request) (*models.Claims, error) {
 	return claims, nil
 }
 
+// Generate a new JWT token
+func generateToken(username string) (string, error) {
+	// Setting expiration time to be 5 minutes from now
+	expirationTime := time.Now().Add(5 * time.Minute)
+
+	claims := &models.Claims{
+		Username: username,
+		RegisteredClaims: jwt.RegisteredClaims{
+			// In JWT, the expiry time is expressed as unix milliseconds
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+		},
+	}
+
+	// Declaring token with header and payload
+	noSignedToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Create a complete signed JWT
+	signedToken, err := noSignedToken.SignedString(GetJWTKey())
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
+}
+
 
 
 func HandleSignin(w http.ResponseWriter, r *http.Request){
@@ -85,40 +110,29 @@ func HandleSignin(w http.ResponseWriter, r *http.Request){
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
+	// Compare the stored hashed password, with the hashed version of the password that was received
 	if expectedPasswordHash!=HashPassword(creds.Password){
 		log.Println("Incorrect password")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	// Declare the expiration time of the token
-	expirationTime := time.Now().Add(5 * time.Minute)
-	// Create the JWT claims, which includes the username and expiry time
-	claims := &models.Claims{
-		Username: creds.Username,
-		RegisteredClaims: jwt.RegisteredClaims{
-			// In JWT, the expiry time is expressed as unix milliseconds
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-		},
-	}
-
-	// Declare the token with the algorithm used for signing, and the claims
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	// Create the JWT string
-	JWT_KEY:=GetJWTKey()
-	tokenString, err := token.SignedString(JWT_KEY)
+	// Create a new JWT token
+	signedToken, err := generateToken(creds.Username)
 	if err != nil {
-		// If there is an error in creating the JWT return an internal server error
-		log.Println("Error while creating JWT:",JWT_KEY,err)
+		log.Println("ERROR OCCURRED WHILE CREATING JWT TOKEN: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	log.Println("JWT created successfully")
-	// Setting httpCookie
+	log.Printf("JWT GENERATED FOR %s",creds.Username)
+
+	// Setting expiration time for cookie
+	expirationTime := time.Now().Add(5 * time.Minute)
+
 	http.SetCookie(w, &http.Cookie{
 		Name:    "JWtoken",
-		Value:   tokenString,
+		Value:   signedToken,
 		Expires: expirationTime,
 	})
 
