@@ -1,14 +1,16 @@
 package utility
 
-import(
-	"log"
-	"net/http"
-	"os"
-	"time"
+import (
 	"errors"
+	
+	"net/http"
+	
+	"time"
+
+	"github.com/aswinbennyofficial/jwt-auth-golang/internal/config"
 	"github.com/aswinbennyofficial/jwt-auth-golang/internal/models"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -27,21 +29,6 @@ func CheckPasswordHash(password, hash string) bool {
     return err == nil
 }
 
-func GetJWTKey() []byte{
-	// Getting environment variables
-	err := godotenv.Load(".env")
-	if err != nil {
-        log.Printf("Error loading environment variables file in controllers.HandleSignin()")
-		return nil
-    }
-
-	JWT_KEY:=os.Getenv("JWT_KEY")
-	if JWT_KEY==""{
-		log.Println("Error loading JWT_KEY in controllers.HandleSignin()")
-		return nil
-	}
-	return []byte(JWT_KEY)
-}
 
 
 // Parse and validate JWT from request
@@ -59,7 +46,7 @@ func ParseAndValidateJWT(r *http.Request) (*models.Claims, error) {
 
 	// Parse the JWT string and store in claims
 	tokenVar, err := jwt.ParseWithClaims(JWTstring, claims, func(token *jwt.Token) (interface{}, error) {
-		return GetJWTKey(), nil
+		return config.LoadJWTSecret(), nil
 	})
 
 	if err != nil {
@@ -90,7 +77,7 @@ func GenerateToken(username string) (string, error) {
 	noSignedToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Create a complete signed JWT
-	signedToken, err := noSignedToken.SignedString(GetJWTKey())
+	signedToken, err := noSignedToken.SignedString(config.LoadJWTSecret())
 	if err != nil {
 		return "", err
 	}

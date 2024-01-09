@@ -1,12 +1,11 @@
 package main
 
 import (
-	"log"
-	"os"
-	"github.com/joho/godotenv"
 	"context"
-	"github.com/aswinbennyofficial/jwt-auth-golang/internal/database"
+	"log"
 	"net/http"
+	"github.com/aswinbennyofficial/jwt-auth-golang/internal/config"
+	"github.com/aswinbennyofficial/jwt-auth-golang/internal/database"
 	"github.com/aswinbennyofficial/jwt-auth-golang/internal/routes"
 	
 )
@@ -16,22 +15,19 @@ import (
 func main(){
 
 	//load env variables
-	err:=godotenv.Load(".env")
-	if err != nil {
-        log.Println("Error loading environment variables file")
-		return
-    }
-	DB_URI:=os.Getenv("MONGODB_URI")
-	DB_NAME:=os.Getenv("DB_NAME")
-	DB_COLLECTION_NAME:=os.Getenv("DB_COLLECTION_NAME")
-	SERVER_PORT:=os.Getenv("PORT")
+	config.LoadEnv()
+
+	DB_URI:=config.LoadMongoDBURI()
+	DB_FOR_AUTH:=config.LoadMongoDBNameAuth()
+	DB_COLLECTION_FOR_AUTH :=config.LoadMongoDBCollectionNameAuth()
+	
 	
 
 
 	// Creating a mongodb client using Db() function in db.go
 	client:=database.DbConnect(DB_URI)
 	
-	database.InitLoginCollection(client,DB_NAME,DB_COLLECTION_NAME)
+	database.InitLoginCollection(client,DB_FOR_AUTH,DB_COLLECTION_FOR_AUTH)
 	
 	
 	
@@ -50,12 +46,10 @@ func main(){
 		}
 	}()
 
-	if SERVER_PORT==""{
-		SERVER_PORT="8080"
-	}
 	// Starting server
+	SERVER_PORT:=config.LoadServerPort()
 	log.Printf("Server starting in port %s....",SERVER_PORT)
-	err=http.ListenAndServe(":"+SERVER_PORT,nil)
+	err:=http.ListenAndServe(":"+SERVER_PORT,nil)
 	if err!=nil{
 		log.Panic("Error while starting server: ",err)
 	}
