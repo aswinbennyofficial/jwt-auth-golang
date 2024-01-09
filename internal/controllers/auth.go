@@ -2,17 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
-	// "errors"
 	"log"
 	"net/http"
-	// "os"
 	"time"
-
 	"github.com/aswinbennyofficial/jwt-auth-golang/internal/database"
 	"github.com/aswinbennyofficial/jwt-auth-golang/internal/models"
 	"github.com/aswinbennyofficial/jwt-auth-golang/internal/utility"
-	// "github.com/golang-jwt/jwt/v5"
-	// "github.com/joho/godotenv"
 )
 
 
@@ -24,20 +19,21 @@ import (
 
 func HandleSignin(w http.ResponseWriter, r *http.Request){
 
+	// Instance of the Credential struct
 	var creds models.Credentials
-	// Get the JSON body and decode into credentials
+	// Get the JSON body and decode into creds
 	err := json.NewDecoder(r.Body).Decode(&creds)
 	if err != nil {
-		// If the structure of the body is wrong, return an HTTP error
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	// Get the expected password from our in memory map
+	// Get the expected password hash from database
 	expectedPasswordHash,err := database.GetPasswordHashFromDb(creds.Username)
 	if err != nil {
 		log.Println("Error while getting password from database: ",err)
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error while getting password from database"))
 		return
 	}
 
@@ -45,6 +41,7 @@ func HandleSignin(w http.ResponseWriter, r *http.Request){
 	if utility.CheckPasswordHash(creds.Password, expectedPasswordHash) == false{
 		log.Println("Incorrect password")
 		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Incorrect password"))
 		return
 	}
 
@@ -53,11 +50,14 @@ func HandleSignin(w http.ResponseWriter, r *http.Request){
 	if err != nil {
 		log.Println("ERROR OCCURRED WHILE CREATING JWT TOKEN: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error occurred while creating JWT token "+err.Error()))
 		return
 	}
 
+
 	log.Printf("JWT GENERATED FOR %s",creds.Username)
 
+	// TODO
 	// Setting expiration time for cookie
 	expirationTime := time.Now().Add(5 * time.Minute)
 
@@ -77,6 +77,7 @@ func HandleRefresh(w http.ResponseWriter, r *http.Request){
 	if err != nil {
 		log.Println("ERROR WHILE PARSING/VALIDATING JWT: ", err)
 		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Error while parsing/validating JWT"))
 		return
 	}
 
@@ -108,10 +109,13 @@ func HandleLogout(w http.ResponseWriter, r *http.Request){
 		Name:    "JWtoken",
 		Expires: time.Now(),
 	})
+	w.WriteHeader(http.StatusOK)
+    w.Write([]byte("Logout successful"))
 }
 
 
 func HandleSignup(w http.ResponseWriter, r *http.Request){
+	// Instance of the NewUser struct
 	var user models.NewUser
 	// Get the JSON body and decode into credentials
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -121,6 +125,7 @@ func HandleSignup(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
+	// Check if username already exists
 	isUserExist,err:= database.DoesUserExist(user.Username)
 	if(err!=nil){
 		log.Println("Error while checking if user exists: ",err)
@@ -135,30 +140,32 @@ func HandleSignup(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	log.Println("User does not exist")
-	w.WriteHeader(http.StatusOK)
 
 	// Hashing the password with the default cost of 10
 	hashedPassword, err := utility.HashPassword(user.Password)
 	if err != nil {
 		log.Println("Error while hashing password: ",err)
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error while hashing password"))
 		return
 	}
 
 	// Replacing existing password with hashed password
 	user.Password=hashedPassword
 
-	// Adding user to database
+	// Adding user and details to database
 	err = database.AddUserToDb(user)
 	if err != nil {
 		log.Println("Error while adding user to database: ",err)
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error while adding user to database"))
 		return
 	}
 
 	log.Println("User added to database")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("User added to database"))
+
 
 	
 }
