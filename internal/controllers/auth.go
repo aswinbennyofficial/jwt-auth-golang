@@ -35,6 +35,10 @@ func HandleSignin(w http.ResponseWriter, r *http.Request){
 	if err != nil {
 		log.Println("Error while getting password from database: ",err)
 		w.WriteHeader(http.StatusInternalServerError)
+		if err.Error()=="User does not exist"{
+			w.Write([]byte("User does not exist"))
+			return
+		}
 		w.Write([]byte("Error while getting password from database"))
 		return
 	}
@@ -68,6 +72,8 @@ func HandleSignin(w http.ResponseWriter, r *http.Request){
 		Value:   signedToken,
 		Expires: expirationTime,
 	})
+
+	w.Write([]byte("Login successful"))
 
 
 }
@@ -137,8 +143,8 @@ func HandleSignup(w http.ResponseWriter, r *http.Request){
 
 	if isUserExist{
 		log.Println("User already exists")
-		w.Write([]byte("User already exists"))
 		w.WriteHeader(http.StatusConflict)
+		w.Write([]byte("User already exists"))
 		return
 	}
 	log.Println("User does not exist")
@@ -164,7 +170,26 @@ func HandleSignup(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
+
 	log.Println("User added to database")
+	
+	// Generate a new JWT token
+	signedToken, err := utility.GenerateToken(user.Username)
+	if err != nil {
+		log.Println("ERROR OCCURRED WHILE CREATING JWT TOKEN: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Setting JWT claims
+	expirationTime := time.Now().Add(time.Duration(config.LoadJwtExpiresIn()) * time.Minute)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "JWtoken",
+		Value:   signedToken,
+		Expires: expirationTime,
+	})
+	
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("User added to database"))
 
