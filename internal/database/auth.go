@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"github.com/aswinbennyofficial/jwt-auth-golang/internal/models"
-	"github.com/aswinbennyofficial/jwt-auth-golang/internal/utility"
+	//"github.com/aswinbennyofficial/jwt-auth-golang/internal/utility"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -33,10 +33,28 @@ func AddUserToDb(newuser models.NewUser) error {
 
 // TODO
 func GetPasswordHashFromDb(username string) (string,error){
-	if(username=="aswinbenny"){
-	return utility.HashPassword("password123")
+	isUserExist,err:=DoesUserExist(username)
+	if err!=nil{
+		log.Println("GetPasswordHashFromDb() :",err)
+		return "",err
 	}
-	return "",errors.New("User not found")
+	if isUserExist==false{
+		return "",errors.New("User does not exist")
+	}
+
+	// Creating a filter
+	filter := bson.D{{"username", username}}
+
+	// Finding a single document
+	var result models.NewUser
+
+	err=coll.FindOne(context.TODO(),filter).Decode(&result)
+	if err != nil {
+		log.Println("GetPasswordHashFromDb() ",err)
+		return "",err
+	}
+
+	return result.Password,nil
 }
 
 func DoesUserExist(username string) (bool,error) {

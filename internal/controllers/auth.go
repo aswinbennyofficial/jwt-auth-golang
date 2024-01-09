@@ -38,6 +38,7 @@ func HandleSignin(w http.ResponseWriter, r *http.Request){
 	if err != nil {
 		log.Println("Error while getting password from database: ",err)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	// Compare the stored hashed password, with the hashed version of the password that was received
