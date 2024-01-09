@@ -15,6 +15,7 @@ func Routes(){
 	
 
 	http.HandleFunc("/signin",controllers.HandleSignin)
+	http.HandleFunc("/signup",controllers.HandleSignup)
 	http.HandleFunc("/refresh", controllers.HandleRefresh)
 	http.HandleFunc("/logout", controllers.HandleLogout)
 

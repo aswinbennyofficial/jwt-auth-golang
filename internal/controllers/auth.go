@@ -108,3 +108,56 @@ func HandleLogout(w http.ResponseWriter, r *http.Request){
 		Expires: time.Now(),
 	})
 }
+
+
+func HandleSignup(w http.ResponseWriter, r *http.Request){
+	var user models.NewUser
+	// Get the JSON body and decode into credentials
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		// If the structure of the body is wrong, return an HTTP error
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	isUserExist,err:= database.DoesUserExist(user.Username)
+	if(err!=nil){
+		log.Println("Error while checking if user exists: ",err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if isUserExist{
+		log.Println("User already exists")
+		w.Write([]byte("User already exists"))
+		w.WriteHeader(http.StatusConflict)
+		return
+	}
+	log.Println("User does not exist")
+	w.WriteHeader(http.StatusOK)
+
+	// Hashing the password with the default cost of 10
+	hashedPassword, err := utility.HashPassword(user.Password)
+	if err != nil {
+		log.Println("Error while hashing password: ",err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Replacing existing password with hashed password
+	user.Password=hashedPassword
+
+	// Adding user to database
+	err = database.AddUserToDb(user)
+	if err != nil {
+		log.Println("Error while adding user to database: ",err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	log.Println("User added to database")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("User added to database"))
+
+	
+}

@@ -23,3 +23,9 @@ type Claims struct {
 	Username string `json:"username"`
 	jwt.RegisteredClaims
 }
+
+// Struct to store the user data in database (signup)
+type NewUser struct{
+	Username string `json:"username"`
+	Password string `json:"password"`
+} 
