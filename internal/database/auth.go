@@ -31,7 +31,7 @@ func AddUserToDb(newuser models.NewUser) error {
 	return nil
 }
 
-// TODO
+
 func GetPasswordHashFromDb(username string) (string,error){
 	isUserExist,err:=DoesUserExist(username)
 	if err!=nil{
@@ -58,7 +58,7 @@ func GetPasswordHashFromDb(username string) (string,error){
 }
 
 func DoesUserExist(username string) (bool,error) {
-	// TODO
+	
 	opts := options.Count().SetHint("_id_")
 	filter := bson.D{{"username", username}}
 	// (ctx, filter,opts) 

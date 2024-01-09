@@ -70,7 +70,7 @@ func HandleSignin(w http.ResponseWriter, r *http.Request){
 
 }
 
-// TODO ENV refresh time
+
 func HandleRefresh(w http.ResponseWriter, r *http.Request){
 	// Parse and validate JWT from request
 	claims, err := utility.ParseAndValidateJWT(r)
