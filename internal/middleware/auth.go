@@ -39,6 +39,7 @@ func LoginRequired(next http.Handler) http.Handler {
 
 			http.SetCookie(w, &http.Cookie{
 				Name:    "JWtoken",
+				Path:    "/",
 				Value:   signedToken,
 				Expires: expirationTime,
 			})

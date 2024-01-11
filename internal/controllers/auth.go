@@ -69,6 +69,7 @@ func HandleSignin(w http.ResponseWriter, r *http.Request){
 
 	http.SetCookie(w, &http.Cookie{
 		Name:    "JWtoken",
+		Path:    "/",
 		Value:   signedToken,
 		Expires: expirationTime,
 	})
@@ -103,6 +104,7 @@ func HandleRefresh(w http.ResponseWriter, r *http.Request){
 
 	http.SetCookie(w, &http.Cookie{
 		Name:    "JWtoken",
+		Path:    "/",
 		Value:   signedToken,
 		Expires: expirationTime,
 	})
@@ -115,6 +117,7 @@ func HandleLogout(w http.ResponseWriter, r *http.Request){
 	log.Println("LOGOUT SUCCESSFUL")
 	http.SetCookie(w, &http.Cookie{
 		Name:    "JWtoken",
+		Path:    "/",
 		Expires: time.Now(),
 	})
 	w.WriteHeader(http.StatusOK)
@@ -186,6 +189,7 @@ func HandleSignup(w http.ResponseWriter, r *http.Request){
 
 	http.SetCookie(w, &http.Cookie{
 		Name:    "JWtoken",
+		Path:    "/",
 		Value:   signedToken,
 		Expires: expirationTime,
 	})
