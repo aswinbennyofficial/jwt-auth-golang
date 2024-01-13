@@ -2,6 +2,9 @@
 
 A secure user authentication service built with Golang and JWT for seamless signup and signin experiences.
 
+Github branch with email verification support : [View branch](https://github.com/aswinbennyofficial/jwt-auth-golang/tree/%40aswinbennyofficial/feature/MagicLinkVerification)
+
+
 ## Dependencies
 
 - [godotenv](https://github.com/joho/godotenv): Used for loading environment variables from a `.env` file.
