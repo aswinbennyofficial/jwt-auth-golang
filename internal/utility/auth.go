@@ -137,7 +137,37 @@ func SendMagicURLToUser(username string) error{
 	// TODO
 	verifyLink:=WEBSITE_URL+"/verify?username="+username+"&magicString="+magicString
 	subject:="Verify your email address"
-	body:="<html><body><h2>Hi Verify you email on ....,</h2> <br> <a href="+verifyLink+">Click here to verify</a> </body></html>"
+	body := `
+<html>
+  <head>
+    <style>
+      body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f4f4f4;
+        text-align: center;
+        margin: 30px;
+      }
+      h2 {
+        color: #333;
+      }
+      a {
+        display: inline-block;
+        padding: 10px 20px;
+        font-size: 16px;
+        text-decoration: none;
+        background-color: #4CAF50;
+        color: #fff;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Hi, Verify your email on...</h2>
+    <p>Click the button below to verify your email:</p>
+    <a href="` + verifyLink + `">Verify Email</a>
+  </body>
+</html>
+`
 	
 	
 
