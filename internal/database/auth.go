@@ -32,6 +32,23 @@ func AddUserToDb(newuser models.NewUser) error {
 	return nil
 }
 
+func CheckIfUserIsVerified(username string) (bool,error){
+	// Creating a filter
+	filter := bson.D{{"username", username}}
+
+	// Instance of the NewUser struct
+	var result models.NewUser
+
+	// Find and decode from mongodb
+	err:=coll.FindOne(context.TODO(),filter).Decode(&result)
+	if err != nil {
+		log.Println("CheckIfUserIsVerified() ",err)
+		return false,err
+	}
+
+	return result.IsVerified,nil
+}
+
 // GetPasswordHashFromDb gets the password hash from the database
 func GetPasswordHashFromDb(username string) (string,error){
 	// Checking if user exists
@@ -76,4 +93,42 @@ func DoesUserExist(username string) (bool,error) {
 	}else{
 		return true,nil
 	}
+}
+
+func GetMagicString(username string) (string,error){
+	// Creating a filter
+	filter := bson.D{{"username", username}}
+
+	// Instance of the NewUser struct
+	var result models.NewUser
+
+	// Find and decode from mongodb
+	err:=coll.FindOne(context.TODO(),filter).Decode(&result)
+	if err != nil {
+		log.Println("GetMagicString() ",err)
+		return "",err
+	}
+
+	return result.MagicString,nil
+}
+
+func SetUserAsVerified(username string) error{
+	// Creating a filter
+	filter := bson.D{{"username", username}}
+
+	// Creating update
+	update := bson.D{
+		{"$set", bson.D{
+			{"isverified", true},
+		}},
+	}
+
+	// Updating database
+	_, err := coll.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		log.Println("SetUserAsVerified() ",err)
+		return err
+	}
+
+	return nil
 }

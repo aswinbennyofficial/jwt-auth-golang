@@ -51,6 +51,23 @@ func HandleSignin(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
+	isVerified,err:=database.CheckIfUserIsVerified(creds.Username)
+	if err!=nil{
+		log.Println("Error while checking if user is verified: ",err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error while checking if user is verified"))
+		return
+	}
+
+	if isVerified==false{
+		log.Println("User is not verified")
+		utility.SendMagicURLToUser(creds.Username)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("User is not verified. Magic URL sent to user"))
+		return
+	}
+	
+
 	// Create a new JWT token
 	signedToken, err := utility.GenerateToken(creds.Username)
 	if err != nil {
@@ -163,6 +180,8 @@ func HandleSignup(w http.ResponseWriter, r *http.Request){
 
 	// Replacing existing password with hashed password
 	user.Password=hashedPassword
+	user.IsVerified=false
+	user.MagicString=utility.GenerateRandomString(10)
 
 	// Adding user and details to database
 	err = database.AddUserToDb(user)
@@ -174,29 +193,76 @@ func HandleSignup(w http.ResponseWriter, r *http.Request){
 	}
 
 
-	log.Println("User added to database")
+	log.Println("User added to database: Please verify email to continue")
+	utility.SendMagicURLToUser(user.Username)
 	
-	// Generate a new JWT token
-	signedToken, err := utility.GenerateToken(user.Username)
-	if err != nil {
-		log.Println("ERROR OCCURRED WHILE CREATING JWT TOKEN: ", err)
-		w.WriteHeader(http.StatusInternalServerError)
+	// // Generate a new JWT token
+	// signedToken, err := utility.GenerateToken(user.Username)
+	// if err != nil {
+	// 	log.Println("ERROR OCCURRED WHILE CREATING JWT TOKEN: ", err)
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
+
+	// // Setting JWT claims
+	// expirationTime := time.Now().Add(time.Duration(config.LoadJwtExpiresIn()) * time.Minute)
+
+	// http.SetCookie(w, &http.Cookie{
+	// 	Name:    "JWtoken",
+	// 	Path:    "/",
+	// 	Value:   signedToken,
+	// 	Expires: expirationTime,
+	// })
+	
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("User added to database. Please verify email to continue"))
+
+
+	
+}
+
+func HandleVerify(w http.ResponseWriter, r *http.Request){
+	// Parse the query parameters
+	username := r.URL.Query().Get("username")
+	magicString := r.URL.Query().Get("magicString")
+
+	isverified,err:= database.CheckIfUserIsVerified(username)
+	if isverified==true{
+		log.Println("User is already verified")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("User is already verified"))
 		return
 	}
 
-	// Setting JWT claims
-	expirationTime := time.Now().Add(time.Duration(config.LoadJwtExpiresIn()) * time.Minute)
+	// Check if magicString is valid
+	expectedMagicString,err:=database.GetMagicString(username)
+	if err!=nil{
+		log.Println("Error while getting magic string from database: ",err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error while getting magic string from database"))
+		return
+	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:    "JWtoken",
-		Path:    "/",
-		Value:   signedToken,
-		Expires: expirationTime,
-	})
+	if magicString!=expectedMagicString{
+		log.Println("Invalid magic string")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Invalid magic string"))
+		return
+	}
+
+	// Set user as verified
+	err=database.SetUserAsVerified(username)
+
+	if err!=nil{
+		log.Println("Error while setting user as verified: ",err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error while setting user as verified"))
+		return
+	}
+
+	log.Println("User verified")
+	w.Write([]byte("User verified. please login to continue"))
 	
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("User added to database"))
 
 
-	
 }

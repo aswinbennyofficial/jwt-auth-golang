@@ -2,13 +2,18 @@ package utility
 
 import (
 	"errors"
-	
+	"log"
+	"math/rand"
+
 	"net/http"
-	
+	"net/smtp"
+
 	"time"
 
 	"github.com/aswinbennyofficial/jwt-auth-golang/internal/config"
+	"github.com/aswinbennyofficial/jwt-auth-golang/internal/database"
 	"github.com/aswinbennyofficial/jwt-auth-golang/internal/models"
+
 	"github.com/golang-jwt/jwt/v5"
 
 	"golang.org/x/crypto/bcrypt"
@@ -83,4 +88,89 @@ func GenerateToken(username string) (string, error) {
 	}
 
 	return signedToken, nil
+}
+
+func GenerateRandomString(length int) string{
+	
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    seed := rand.NewSource(time.Now().UnixNano())
+    random := rand.New(seed)
+
+    result := make([]byte, length)
+    for i := range result {
+        result[i] = charset[random.Intn(len(charset))]
+    }
+    return string(result)
+}
+
+func SendMagicURLToUser(username string) error{
+	// TODO
+
+	// Send magic string to user's email
+	magicString,err:=database.GetMagicString(username)
+	if err!=nil{
+		log.Println("Error while getting magic string from database: ",err)
+		return err
+	}
+
+	// SMTP server Credentials from .env file
+	SMTP_USERNAME := config.LoadSMTPUsername()
+	SMTP_PASSWORD := config.LoadSMTPPassword()
+	SMTP_HOST := config.LoadSMTPServer()
+	FROM_EMAIL := config.LoadSMTPFromEmail()
+	SMTP_PORT := config.LoadSMTPPort()
+	REPLY_TO := config.LoadSMTPReply_to()
+	WEBSITE_URL:=config.LoadWebsiteUrl()
+	
+	log.Println("SMTP CREDS init ",SMTP_USERNAME, " ", SMTP_PASSWORD," ",SMTP_HOST )
+	
+	// Setup authentication variable
+	auth:=smtp.PlainAuth("",SMTP_USERNAME,SMTP_PASSWORD,SMTP_HOST)
+
+	
+
+	if REPLY_TO==""{
+		REPLY_TO=FROM_EMAIL
+	}
+
+	// mail
+	// TODO
+	verifyLink:=WEBSITE_URL+"/verify?username="+username+"&magicString="+magicString
+	subject:="Verify your email address"
+	body:="<html><body><h2>Hi Verify you email on ....,</h2> <br> <a href="+verifyLink+">Click here to verify</a> </body></html>"
+	
+	
+
+	var msg []byte
+	//For basic text
+	// msg = []byte(
+	// 	"Reply-To: "+reply_to+"\r\n"+
+	// 	"Subject: "+subject+"\r\n" +
+	// 	"\r\n" +
+	// 	body+"\r\n")
+
+	//For rich html support
+	msg = []byte(
+		"From: "+FROM_EMAIL+"\r\n"+
+		"Reply-To: " + REPLY_TO + "\r\n" +
+			"Subject: " + subject + "\r\n" +
+			"MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\r\n" +
+			"\r\n" +
+			body + "\r\n")
+
+	recieverEmail := []string{username} 
+	
+	// send the mail
+	err = smtp.SendMail(SMTP_HOST+":"+SMTP_PORT, auth, FROM_EMAIL, recieverEmail, msg)
+
+	// handling the errors
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+
+	log.Println("Successfully sent verification mail")
+
+	return nil
 }

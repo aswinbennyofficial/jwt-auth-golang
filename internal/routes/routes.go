@@ -14,9 +14,10 @@ func Routes(){
 	http.Handle("/welcome",middleware.LoginRequired(http.HandlerFunc(controllers.HandleWelcome)))
 	
 
-	http.HandleFunc("/signin",controllers.HandleSignin)
+	http.HandleFunc("/login",controllers.HandleSignin)
 	http.HandleFunc("/signup",controllers.HandleSignup)
 	http.HandleFunc("/refresh", controllers.HandleRefresh)
+	http.HandleFunc("/verify", controllers.HandleVerify)
 	http.HandleFunc("/logout", controllers.HandleLogout)
 
 }

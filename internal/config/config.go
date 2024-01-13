@@ -1,8 +1,10 @@
 package config
 
-import(
-	"github.com/joho/godotenv"
+import (
 	"log"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 
@@ -13,3 +15,9 @@ func LoadEnv(){
 		return
 	}
 }
+
+func LoadWebsiteUrl() string{
+	websiteUrl:=os.Getenv("WEBSITE_URL")
+	return websiteUrl
+}
+

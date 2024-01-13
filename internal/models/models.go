@@ -23,4 +23,6 @@ type Claims struct {
 type NewUser struct{
 	Username string `json:"username"`
 	Password string `json:"password"`
+	IsVerified bool `json:"isverified"`
+	MagicString string `json:"magicString"`
 } 
